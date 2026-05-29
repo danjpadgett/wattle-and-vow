@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Wattle &amp; Vow">
+  <title>Wattle &amp; Vow</title>
+  <!-- Stem -->
+  <path d="M12 52 Q22 40 30 28 Q38 16 50 12"
+        stroke="#456b58" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <!-- Feathery leaves -->
+  <g fill="#5b8a72">
+    <ellipse cx="18" cy="46" rx="5.5" ry="1.8" transform="rotate(-35 18 46)"/>
+    <ellipse cx="24" cy="40" rx="4.8" ry="1.6" transform="rotate(-40 24 40)"/>
+    <ellipse cx="28" cy="34" rx="5.5" ry="1.8" transform="rotate(-50 28 34)"/>
+    <ellipse cx="34" cy="28" rx="4.8" ry="1.6" transform="rotate(-55 34 28)"/>
+  </g>
+  <!-- Wattle puffs -->
+  <g>
+    <circle cx="48" cy="12" r="4.2" fill="#f0b429"/>
+    <circle cx="42" cy="16" r="3.4" fill="#f7c948"/>
+    <circle cx="52" cy="18" r="3.2" fill="#de911d"/>
+    <circle cx="45" cy="22" r="2.8" fill="#f0b429"/>
+    <circle cx="38" cy="20" r="2.4" fill="#fadb5f"/>
+  </g>
+  <!-- Tiny Southern-Cross-style star, nodding to the 'Vow' -->
+  <path d="M14 14 l1.2 2.4 2.6 0.4 -1.9 1.8 0.45 2.6 -2.35 -1.25 -2.35 1.25 0.45 -2.6 -1.9 -1.8 2.6 -0.4z"
+        fill="#34543f"/>
+</svg>
