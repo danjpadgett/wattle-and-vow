@@ -26,7 +26,6 @@ export default function Quiz({ mode, chapterSlug, questions }: Props) {
     () => questions.map(() => null)
   );
   const [submitted, setSubmitted] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   const result = useMemo(() => {
     if (!submitted) return null;
@@ -50,29 +49,11 @@ export default function Quiz({ mode, chapterSlug, questions }: Props) {
 
   const allAnswered = answers.every((a) => a !== null);
 
-  async function submit() {
-    if (!allAnswered || saving) return;
-    setSaving(true);
+  function submit() {
+    if (!allAnswered) return;
     setSubmitted(true);
-    try {
-      await fetch("/api/attempts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode,
-          chapterSlug,
-          items: questions.map((q, i) => ({
-            questionId: q.id,
-            chapterSlug: q.chapterSlug,
-            answeredIndex: answers[i],
-            isCorrect: answers[i] === q.correctIndex
-          }))
-        })
-      });
-    } catch {
-      // non-fatal; the user still sees their result
-    } finally {
-      setSaving(false);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 
@@ -188,8 +169,8 @@ export default function Quiz({ mode, chapterSlug, questions }: Props) {
             </button>
             <button
               onClick={submit}
-              disabled={!allAnswered || saving}
-              className={clsx("btn-primary", (!allAnswered || saving) && "opacity-50")}
+              disabled={!allAnswered}
+              className={clsx("btn-primary", !allAnswered && "opacity-50")}
             >
               Submit answers
             </button>

@@ -1,21 +1,12 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { getChapter } from "@/lib/content";
 import { pickChapterQuestions } from "@/lib/selection";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import Quiz from "@/components/Quiz";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function ChapterTestPage({
-  params
-}: {
-  params: { slug: string };
-}) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/sign-in");
-
+export default function ChapterTestPage({ params }: { params: { slug: string } }) {
   const chapter = getChapter(params.slug);
   if (!chapter) notFound();
 

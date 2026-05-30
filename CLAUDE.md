@@ -4,14 +4,16 @@ This file is the working plan and source of truth for Claude/Copilot when assist
 
 ## 1. Purpose
 
-A web-based study application to help my wife prepare for and pass the **Australian Citizenship Test**. The app focuses on **effective, repeated practice** of the known and commonly asked questions that appear on the official test.
+A web-based study & trivia app with two sides:
+
+1. **Citizen Test** — help my wife prepare for and pass the **Australian Citizenship Test** through focused chapter readings + a real-style 20-question practice test.
+2. **Australiana** — a relaxed, fun quiz of everyday Aussie life (beers, footy, slang, bush, schoolyard) for anyone.
 
 ## 2. Users & Auth
 
-- **Small fixed set of accounts** (2–5), primarily for my wife, possibly me and close family.
-- **Login via Google sign-in** (OAuth). No password management.
-- Logging in unlocks the core benefit: **progress is saved** across sessions and devices.
-- Access is gated by an allow-list of Google email addresses (configurable via env var).
+- **No authentication.** The app is fully public and stateless.
+- No accounts, no database, no progress saved server-side. Anyone can use it.
+- (Future option: lightweight `localStorage` progress — not implemented yet.)
 
 ## 3. Design Principles
 
@@ -22,9 +24,12 @@ A web-based study application to help my wife prepare for and pass the **Austral
 
 ## 4. Core Experience
 
-### 4.1 Landing & login
-- Open a public URL → "Sign in with Google" → land on a personal dashboard.
-- Dashboard shows: chapters with progress indicators, a "Full Practice Test" entry point, and overall readiness.
+### 4.1 Landing page
+- Public URL → immediate access. No sign-in.
+- Landing hub presents three primary entry points:
+  - **Citizen Test** — full 20-question practice test.
+  - **Australiana** — fun trivia, categorised.
+  - **Study chapters** — four reading + 10-question test chapters.
 
 ### 4.2 Learn in chapters
 The app is organised around the four core themes of the Australian citizenship test:
@@ -55,9 +60,8 @@ Each chapter has two parts:
 - Reward feedback on correct answers: simple green tick + short praise message (e.g. "Spot on!", "Nice one!").
 
 ### 4.5 Progress & saving
-- Progress saves automatically on every answered question and on test completion.
-- The user can leave a chapter or test mid-way and resume later.
-- Per-chapter progress shows: reading read (yes/no), best chapter-test score, last attempt date.
+- No persistence. Each session is fresh.
+- Refresh / re-enter a quiz → new randomised subset and shuffled choices.
 
 ### 4.6 Full practice test ("Citizenship Test" mode)
 - Separate entry point on the dashboard, outside the chapter flow.
@@ -69,6 +73,15 @@ Each chapter has two parts:
     - Must achieve **≥75% overall** (i.e. at least 15 of 20).
   - Result screen clearly states **PASS** or **FAIL**, the score, and which questions were missed with explanations.
 
+### 4.7 Australiana mode
+- Separate entry point on the landing page.
+- Browseable by **category** (Food & Drink, Sport, Bush & Backyard, School & Kids, Slang & Sayings, Places & Icons) and a **Shuffle** option that mixes 10 random items from all categories.
+- Items mix three formats:
+  - **`mcq`** — multiple-choice with explanation on check.
+  - **`reveal`** — open-ended question, tap-to-reveal the answer (e.g. "name all the sizes of beer in different states").
+  - **`challenge`** — real-world prompt with no grading, just "I had a go" (e.g. "do an impression of a kookaburra").
+- No pass/fail, no scoring. Just fun.
+
 ## 5. Visual Theme
 
 - **Subtle Australian motifs on a clean, modern UI.**
@@ -79,33 +92,27 @@ Each chapter has two parts:
 
 ## 6. Non-Functional Requirements
 
-- **Hosting:** Railway (web service + managed Postgres). Default `*.up.railway.app` URL to start — custom domain can come later.
-- **Always-on, low cost** — small footprint, suitable for Railway's hobby tier.
+- **Hosting:** Railway (web service only — no database).
+- **Always-on, low cost** — fully static-ish Next.js app, tiny footprint.
 - **Mobile-first responsive UI.**
 - **Fast load** — minimal JS framework overhead.
-- **Persistent progress** across sessions/devices, tied to Google account.
+- **No persistent storage** of any user data.
 
 ## 7. Tech Stack
 
-Keep it as simple as possible to meet the requirements. Working assumption (single deployable, easy on Railway):
-
-- **Framework:** Next.js (App Router) + TypeScript — one process serves both UI and API.
+- **Framework:** Next.js 14 (App Router) + TypeScript.
 - **Styling:** Tailwind CSS with a small custom theme for wattle/eucalyptus accents.
-- **Database:** PostgreSQL (Railway plugin).
-- **ORM:** Prisma.
-- **Auth:** NextAuth (Auth.js) with **Google provider**, restricted to an allow-list of emails (env var).
+- **Database:** none.
+- **Auth:** none.
 - **Deployment:** Railway, auto-deploy from GitHub `main`.
 
-If during build a simpler stack proves clearly better, revisit — but default to the above.
+## 8. Data Model
 
-## 8. Data Model (initial draft)
+Nothing persisted. All content lives in version-controlled TypeScript modules:
 
-- `User` — id, googleSub, email, name, createdAt.
-- `Chapter` — id, slug, title, order, readingMarkdown.
-- `Question` — id, chapterId, prompt, choices[], correctIndex, explanation, source, isValuesQuestion (bool), weight.
-- `ChapterProgress` — userId, chapterId, readingCompleted (bool), bestScore, lastAttemptAt.
-- `Attempt` — id, userId, questionId, answeredIndex, isCorrect, answeredAt, sessionId.
-- `Session` — id, userId, mode (`chapter` | `full_test`), chapterId (nullable), startedAt, completedAt, score, passed (nullable for chapter mode).
+- `src/lib/content.ts` — citizenship chapters (reading + question pool).
+- `src/lib/australiana.ts` — Australiana categories with mixed-format items (`mcq` | `reveal` | `challenge`).
+- `src/lib/selection.ts` — question selection + shuffling for chapter tests and the full practice test.
 
 ## 9. Question Selection Rules
 
@@ -147,3 +154,4 @@ If during build a simpler stack proves clearly better, revisit — but default t
 
 - **Update 1:** Added Australian theme, design principles, full chapter-based learning experience (reading + "Test me"), submit-then-reveal answer behaviour with explanations on wrong answers, restart support, auto-saved progress, retake refresh (new subset + shuffled choices), and the standalone 20-question full practice test with real-test pass rules.
 - **Update 1 — decisions captured:** small fixed account set; **Google sign-in** with email allow-list; **Next.js + Postgres** stack; subtle wattle/Southern-Cross theme; **10 questions per chapter** test; content sourced from *Our Common Bond*; full-test enforces both the **all-5-Values-correct** and **≥75% overall** rules; retake refresh = **new subset AND shuffled choices**; default Railway URL for now.
+- **Update 2 (pivot):** Auth and database removed entirely. App is public and stateless. Added **Australiana** mode — a relaxed trivia experience with multiple-choice, tap-to-reveal, and silly real-world "challenge" items, browseable by category or shuffled. Landing page reorganised as a hub: Citizen Test, Australiana, and four study chapters.

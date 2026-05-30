@@ -1,104 +1,104 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { CHAPTERS } from "@/lib/content";
 import Link from "next/link";
-import SignInButton from "@/components/SignInButton";
+import { CHAPTERS } from "@/lib/content";
+import { AUSTRALIANA_CATEGORIES } from "@/lib/australiana";
 
-export const dynamic = "force-dynamic";
-
-export default async function HomePage() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return (
-      <div className="card mx-auto max-w-xl text-center">
-        <h1 className="text-3xl font-bold text-eucalypt-700">G'day!</h1>
-        <p className="mt-3 text-slate-700">
-          Study for your Australian citizenship test in four focused chapters, then put it all
-          together with a full 20-question practice test.
-        </p>
-        <p className="mt-2 text-slate-600">
-          Sign in with Google to save your progress across devices.
-        </p>
-        <div className="mt-6 flex justify-center">
-          <SignInButton />
-        </div>
-      </div>
-    );
-  }
-
-  const userId = (session.user as { id?: string }).id!;
-  const progress = await prisma.chapterProgress.findMany({ where: { userId } });
-  const progressBySlug = new Map(progress.map((p) => [p.chapterSlug, p]));
-
-  const recentFullTest = await prisma.testSession.findFirst({
-    where: { userId, mode: "full_test" },
-    orderBy: { completedAt: "desc" }
-  });
-
+export default function HomePage() {
   return (
-    <div className="space-y-8">
-      <section className="card">
-        <h1 className="text-2xl font-bold text-eucalypt-700">
-          Welcome back{session.user.name ? `, ${session.user.name.split(" ")[0]}` : ""}.
-        </h1>
-        <p className="mt-2 text-slate-700">
-          Work through the chapters below. When you're ready, take a full practice test.
+    <div className="space-y-10">
+      <section className="card text-center">
+        <h1 className="text-3xl font-bold text-eucalypt-700">G&apos;day!</h1>
+        <p className="mt-3 text-slate-700">
+          Have a crack at the official-style citizenship test, work through the four study
+          chapters, or take it easy with a bit of Australiana.
         </p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2">
-        {CHAPTERS.map((ch) => {
-          const p = progressBySlug.get(ch.slug);
-          return (
+      {/* Top: the two big test entry points */}
+      <section className="grid gap-4 md:grid-cols-2">
+        <Link
+          href="/practice-test"
+          className="card group flex flex-col gap-3 transition hover:shadow-md hover:ring-eucalypt-500"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-eucalypt-700">Citizen Test</h2>
+            <span className="rounded-full bg-eucalypt-600 px-3 py-1 text-xs font-semibold text-white">
+              20 questions
+            </span>
+          </div>
+          <p className="text-sm text-slate-600">
+            The real-deal practice test. To pass: all 5 Australian Values questions correct AND
+            at least 75% overall.
+          </p>
+          <span className="mt-auto text-sm font-medium text-eucalypt-700 group-hover:underline">
+            Start the test →
+          </span>
+        </Link>
+
+        <Link
+          href="/australiana"
+          className="card group flex flex-col gap-3 transition hover:shadow-md hover:ring-wattle-400"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-eucalypt-700">Australiana</h2>
+            <span className="rounded-full bg-wattle-400 px-3 py-1 text-xs font-semibold text-slate-900">
+              Just for fun
+            </span>
+          </div>
+          <p className="text-sm text-slate-600">
+            Footy, beers, slang, bush and backyard. Mix of quick-fire questions, tap-to-reveal
+            cards, and silly challenges.
+          </p>
+          <span className="mt-auto text-sm font-medium text-eucalypt-700 group-hover:underline">
+            Pick a category →
+          </span>
+        </Link>
+      </section>
+
+      {/* Study chapters */}
+      <section>
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-lg font-semibold text-eucalypt-700">Study chapters</h2>
+          <span className="text-xs text-slate-500">Reading + 10-question chapter test</span>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {CHAPTERS.map((ch) => (
             <Link
               key={ch.slug}
               href={`/chapters/${ch.slug}`}
               className="card transition hover:shadow-md hover:ring-eucalypt-500"
             >
-              <h2 className="text-lg font-semibold text-eucalypt-700">{ch.title}</h2>
+              <h3 className="text-base font-semibold text-eucalypt-700">{ch.title}</h3>
               <p className="mt-1 text-sm text-slate-600">{ch.blurb}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                <span
-                  className={
-                    p?.readingCompleted
-                      ? "rounded-full bg-eucalypt-100 px-2 py-0.5 text-eucalypt-700"
-                      : "rounded-full bg-slate-100 px-2 py-0.5"
-                  }
-                >
-                  {p?.readingCompleted ? "Reading completed" : "Reading not yet done"}
-                </span>
-                {typeof p?.bestScore === "number" && (
-                  <span className="rounded-full bg-wattle-200 px-2 py-0.5 text-slate-800">
-                    Best test: {p.bestScore}/10
-                  </span>
-                )}
-              </div>
             </Link>
-          );
-        })}
+          ))}
+        </div>
       </section>
 
-      <section className="card">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-eucalypt-700">Full practice test</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              20 questions, mirrored on the real test. You must answer all 5 Australian Values
-              questions correctly AND score at least 75% overall to pass.
-            </p>
-          </div>
-          <Link href="/practice-test" className="btn-primary">
-            Start practice test
+      {/* Quick Australiana shortcuts */}
+      <section>
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-lg font-semibold text-eucalypt-700">Australiana categories</h2>
+          <Link href="/australiana" className="text-xs text-eucalypt-700 hover:underline">
+            See all →
           </Link>
         </div>
-        {recentFullTest && (
-          <p className="mt-3 text-xs text-slate-500">
-            Last attempt: {recentFullTest.score}/{recentFullTest.total} —{" "}
-            {recentFullTest.passed ? "PASSED ✓" : "Not yet passed"}
-          </p>
-        )}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {AUSTRALIANA_CATEGORIES.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/australiana/${cat.slug}`}
+              className="card transition hover:shadow-md hover:ring-wattle-400"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xl" aria-hidden>
+                  {cat.emoji}
+                </span>
+                <h3 className="text-base font-semibold text-eucalypt-700">{cat.title}</h3>
+              </div>
+              <p className="mt-1 text-sm text-slate-600">{cat.blurb}</p>
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );

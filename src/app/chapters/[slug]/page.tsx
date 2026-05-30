@@ -1,40 +1,17 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { getChapter } from "@/lib/content";
-import { prisma } from "@/lib/prisma";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import MarkReadingButton from "@/components/MarkReadingButton";
 
-export const dynamic = "force-dynamic";
-
-export default async function ChapterPage({
-  params
-}: {
-  params: { slug: string };
-}) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/sign-in");
-
+export default function ChapterPage({ params }: { params: { slug: string } }) {
   const chapter = getChapter(params.slug);
   if (!chapter) notFound();
-
-  const userId = (session.user as { id?: string }).id!;
-  const progress = await prisma.chapterProgress.findUnique({
-    where: { userId_chapterSlug: { userId, chapterSlug: chapter.slug } }
-  });
 
   return (
     <article className="space-y-6">
       <div className="flex items-center justify-between">
         <Link href="/" className="btn-ghost text-sm">
-          ← Back to chapters
+          ← Back to home
         </Link>
-        {typeof progress?.bestScore === "number" && (
-          <span className="text-sm text-slate-500">
-            Best test score: {progress.bestScore}/10
-          </span>
-        )}
       </div>
 
       <header className="card">
@@ -59,19 +36,13 @@ export default async function ChapterPage({
         <div>
           <h2 className="text-lg font-semibold text-eucalypt-700">Ready to test yourself?</h2>
           <p className="mt-1 text-sm text-slate-600">
-            10 questions, no peeking at the reading. You can retake it as many times as you
-            like — questions and answer choices refresh each time.
+            10 questions, no peeking at the reading. Retake it any time — questions and answer
+            choices refresh each go.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <MarkReadingButton
-            chapterSlug={chapter.slug}
-            initiallyDone={!!progress?.readingCompleted}
-          />
-          <Link href={`/chapters/${chapter.slug}/test`} className="btn-primary">
-            Test me
-          </Link>
-        </div>
+        <Link href={`/chapters/${chapter.slug}/test`} className="btn-primary">
+          Test me
+        </Link>
       </div>
     </article>
   );
