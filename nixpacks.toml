@@ -1,0 +1,6 @@
+# Override Nixpacks defaults so it doesn't try to mount
+# /app/tsconfig.tsbuildinfo as a build cache. A stale Railway cache
+# entry caused builds to fail with "not a directory" on that path.
+[phases.build]
+cmd = "npm run build"
+cacheDirectories = []
