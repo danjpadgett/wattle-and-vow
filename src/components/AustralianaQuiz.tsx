@@ -151,21 +151,30 @@ function ChallengeCard({
 }) {
   const [done, setDone] = useState(false);
   return (
-    <div className="card">
+    <div className="card border-l-4 border-l-red-300">
       <Header
         index={index}
         tag="Challenge"
         tagClass="bg-red-100 text-red-800"
       />
-      <p className="mt-1 font-medium text-slate-900">{item.prompt}</p>
+      <p className="mt-2 text-xs uppercase tracking-wide text-red-700/80">
+        Real-world dare — no right answer, just have a crack.
+      </p>
+      <p className="mt-2 font-medium text-slate-900">{item.prompt}</p>
       {item.note && (
         <p className="mt-1 text-xs text-slate-500 italic">{item.note}</p>
       )}
       <button
+        type="button"
         onClick={() => setDone((d) => !d)}
-        className={clsx("mt-3", done ? "btn-secondary" : "btn-ghost")}
+        className={clsx(
+          "mt-4 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition",
+          done
+            ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+            : "bg-red-100 text-red-800 hover:bg-red-200"
+        )}
       >
-        {done ? "✓ Had a crack" : "I had a go"}
+        {done ? "✓ Done — had a crack" : "Mark as done"}
       </button>
       {done && (
         <p className="mt-2 text-sm text-emerald-700 font-medium">
